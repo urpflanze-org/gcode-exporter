@@ -29,22 +29,22 @@ To configure the machine you can as the second argument of `parse`
 ```javascript
 {
 	// Draw Area
-	minX?: number
-	minY?: number
-	maxX?: number
-	maxY?: number
+	minX: number
+	minY: number
+	maxX: number
+	maxY: number
 
 	// feedrate mm/m
-	velocity?: number
+	velocity: number
 
-	unit?: 'millimeters' | 'inches'
+	unit: 'millimeters' | 'inches'
 
 	// Pen
 	penUpCommand: string
 	penDownCommand: string
 
 	// Rounding off values
-	decimals?: number
+	decimals: number
 }
 ```
 

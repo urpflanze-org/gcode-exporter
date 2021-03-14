@@ -1,5 +1,5 @@
 {
-	"name": "@urpflanze/[name]",
+	"name": "@urpflanze/gcode-exporter",
 	"version": "0.0.1",
 	"description": "Urpfanze package",
 	"license": "GPL-3.0-or-later",
@@ -14,10 +14,10 @@
 	"homepage": "",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/urpflanze-org/[name].git"
+		"url": "https://github.com/urpflanze-org/gcode-exporter.git"
 	},
 	"bugs": {
-		"url": "https://github.com/urpflanze-org/[name]/issues",
+		"url": "https://github.com/urpflanze-org/gcode-exporter/issues",
 		"email": "gennaro.bs@gmail.com"
 	},
 	"funding": [
@@ -50,13 +50,11 @@
 		"generate-docs": "npx generate-docs"
 	},
 	"publishConfig": {},
-	"dependencies": {},
 	"devDependencies": {
 		"@typescript-eslint/eslint-plugin": "^4.16.1",
-		"@urpflanze/typedoc-docs": "^0.1.13",
+		"@urpflanze/core": "^0.4.1",
 		"eslint": "^7.21.0",
 		"eslint-config-prettier": "^8.1.0",
 		"typescript": "4.2"
-	},
-	"googleAnalyticsID": ""
+	}
 }

@@ -1,12 +1,15 @@
 {
 	"name": "@urpflanze/gcode-exporter",
 	"version": "0.0.1",
-	"description": "Urpfanze package",
+	"description": "Export urpflanze scene to GCODE",
 	"license": "GPL-3.0-or-later",
 	"docs": "",
 	"keywords": [
 		"urpflanze",
 		"creativecoding",
+		"plotterart",
+		"generativeart",
+		"gcode",
 		"mathart",
 		"typescript"
 	],

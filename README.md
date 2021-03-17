@@ -1,6 +1,6 @@
 # GCODE-Exporter
 
-This is a tool to export the [urpflanze scene](https://github.com/urpflanze-org/core) in GCODE
+This is a tool to export the [urpflanze scene](https://github.com/urpflanze-org/core) to GCODE
 
 Install with npm
 
@@ -24,7 +24,7 @@ scene.update()
 const gcode = GCODEExporter.parse(scene /*, config*/)
 ```
 
-To configure the machine you can as the second argument of `parse`
+You can pass machine configuration with the second argument of `parse`
 
 ```javascript
 {

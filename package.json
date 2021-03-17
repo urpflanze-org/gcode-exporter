@@ -1,6 +1,6 @@
 {
 	"name": "@urpflanze/gcode-exporter",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Export urpflanze scene to GCODE",
 	"license": "GPL-3.0-or-later",
 	"docs": "",

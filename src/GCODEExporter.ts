@@ -183,7 +183,7 @@ class GCODEExporter {
 				currentBufferIndex < len;
 				currentBufferIndex++
 			) {
-				const currentIndexing = childIndexedBuffer[i]
+				const currentIndexing = childIndexedBuffer[currentBufferIndex]
 				const initialPointX = clamp(
 					settings.minX,
 					settings.maxX,

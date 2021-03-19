@@ -202,7 +202,7 @@ class GCODEExporter {
 				)
 
 				vertexIndex += 2
-				for (let len = currentIndexing.frameLength; vertexIndex < len; vertexIndex += 2) {
+				for (let len = vertexIndex - 2 + currentIndexing.frameLength; vertexIndex < len; vertexIndex += 2) {
 					const currentX = clamp(
 						settings.minX,
 						settings.maxX,

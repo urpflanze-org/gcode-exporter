@@ -177,9 +177,10 @@ class GCODEExporter {
 
 			const childBuffer = sceneChilds[i].getBuffer() || []
 			const childIndexedBuffer = sceneChilds[i].getIndexedBuffer() || []
+			let childVertexIndex = 0
 
 			for (
-				let currentBufferIndex = 0, vertexIndex = 0, len = childIndexedBuffer.length;
+				let currentBufferIndex = 0, len = childIndexedBuffer.length;
 				currentBufferIndex < len;
 				currentBufferIndex++
 			) {
@@ -187,13 +188,13 @@ class GCODEExporter {
 				const initialPointX = clamp(
 					settings.minX,
 					settings.maxX,
-					settings.minX + childBuffer[vertexIndex] / scale + drawAreaSceneOffset[0]
+					settings.minX + childBuffer[childVertexIndex] / scale + drawAreaSceneOffset[0]
 				)
 
 				const initialPointY = clamp(
 					settings.minY,
 					settings.maxY,
-					settings.minY + childBuffer[vertexIndex + 1] / scale + drawAreaSceneOffset[1]
+					settings.minY + childBuffer[childVertexIndex + 1] / scale + drawAreaSceneOffset[1]
 				)
 
 				concat(
@@ -201,17 +202,21 @@ class GCODEExporter {
 					this.moveTo(settings.penUpCommand, settings.penDownCommand, initialPointX, initialPointY, settings.decimals)
 				)
 
-				vertexIndex += 2
-				for (let len = vertexIndex - 2 + currentIndexing.frameLength; vertexIndex < len; vertexIndex += 2) {
+				childVertexIndex += 2
+				for (
+					let len = childVertexIndex + currentIndexing.frameLength - 2;
+					childVertexIndex < len;
+					childVertexIndex += 2
+				) {
 					const currentX = clamp(
 						settings.minX,
 						settings.maxX,
-						settings.minX + childBuffer[vertexIndex] / scale + drawAreaSceneOffset[0]
+						settings.minX + childBuffer[childVertexIndex] / scale + drawAreaSceneOffset[0]
 					)
 					const currentY = clamp(
 						settings.minY,
 						settings.maxY,
-						settings.minY + childBuffer[vertexIndex + 1] / scale + drawAreaSceneOffset[1]
+						settings.minY + childBuffer[childVertexIndex + 1] / scale + drawAreaSceneOffset[1]
 					)
 					concat(gcode, this.lineTo(currentX, currentY, settings.velocity, settings.decimals))
 				}

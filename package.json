@@ -49,8 +49,7 @@
 		"build": "tsc",
 		"watch": "tsc --watch",
 		"lint": "eslint src --ext .ts",
-		"prepublishOnly": "npm run build",
-		"generate-docs": "npx generate-docs"
+		"prepublishOnly": "npm run build"
 	},
 	"publishConfig": {},
 	"devDependencies": {

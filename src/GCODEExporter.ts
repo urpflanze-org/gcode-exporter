@@ -1,4 +1,6 @@
-import { Scene, clamp } from '@urpflanze/core'
+import type { Scene, ShapePrimitive } from '@urpflanze/core'
+import { clamp } from '@urpflanze/core'
+import simplify from 'simplify-js'
 
 import type { IGCODEExporterSettings } from './types'
 import { round, concat } from './utilities'
@@ -13,7 +15,7 @@ class GCODEExporter {
 		velocity: 1500,
 		penUpCommand: 'M3 S30',
 		penDownCommand: 'M3 S0',
-		decimals: 3,
+		decimals: 2,
 	}
 
 	static parse(scene: Scene, settings: IGCODEExporterSettings): string {
@@ -202,27 +204,33 @@ class GCODEExporter {
 					this.moveTo(settings.penUpCommand, settings.penDownCommand, initialPointX, initialPointY, settings.decimals)
 				)
 
-				childVertexIndex += 2
-				for (
-					let len = childVertexIndex + currentIndexing.frameLength - 2;
-					childVertexIndex < len;
-					childVertexIndex += 2
-				) {
+				const simplifiedBuffer = GCODEExporter.pointsToBuffer(
+					simplify(
+						GCODEExporter.bufferToPoints(
+							childBuffer.slice(childVertexIndex, childVertexIndex + currentIndexing.frameLength)
+						),
+						1 / 10 ** settings.decimals
+					)
+				)
+
+				for (let i = 0, len = simplifiedBuffer.length; i < len; i += 2) {
 					const currentX = clamp(
 						settings.minX,
 						settings.maxX,
-						settings.minX + childBuffer[childVertexIndex] / scale + drawAreaSceneOffset[0]
+						settings.minX + simplifiedBuffer[i] / scale + drawAreaSceneOffset[0]
 					)
 					const currentY = clamp(
 						settings.minY,
 						settings.maxY,
-						settings.minY + childBuffer[childVertexIndex + 1] / scale + drawAreaSceneOffset[1]
+						settings.minY + simplifiedBuffer[i + 1] / scale + drawAreaSceneOffset[1]
 					)
 					concat(gcode, this.lineTo(currentX, currentY, settings.velocity, settings.decimals))
 				}
 
-				if (currentIndexing.shape.isClosed())
+				if ((currentIndexing.shape as ShapePrimitive).isClosed())
 					concat(gcode, this.lineTo(initialPointX, initialPointY, settings.velocity, settings.decimals))
+
+				childVertexIndex += currentIndexing.frameLength
 			}
 		}
 		/**
@@ -233,6 +241,25 @@ class GCODEExporter {
 		concat(gcode, this.goHome(settings.penUpCommand))
 
 		return gcode
+	}
+
+	static bufferToPoints(buffer: Array<number> | Float32Array): Array<{ x: number; y: number }> {
+		const result: Array<{ x: number; y: number }> = []
+
+		for (let i = 0, len = buffer.length; i < len; i += 2) result.push({ x: buffer[i], y: buffer[i + 1] })
+
+		return result
+	}
+
+	static pointsToBuffer(points: Array<{ x: number; y: number }>): Float32Array {
+		const result: Array<number> = []
+
+		for (let i = 0, len = points.length; i < len; i++) {
+			result.push(points[i].x)
+			result.push(points[i].y)
+		}
+
+		return Float32Array.from(result)
 	}
 }
 

@@ -29,6 +29,7 @@ You can pass machine configuration with the second argument of `parse`
 ```javascript
 {
 	// Draw Area
+	unit: 'millimeters' | 'inches'
 	minX: number
 	minY: number
 	maxX: number
@@ -36,8 +37,6 @@ You can pass machine configuration with the second argument of `parse`
 
 	// feedrate mm/m
 	velocity: number
-
-	unit: 'millimeters' | 'inches'
 
 	// Pen
 	penUpCommand: string
@@ -52,14 +51,14 @@ Default values A4 (horizontal):
 
 ```javascript
 {
+    unit: 'millimeters',
     minX: 0,
     minY: 0,
     maxX: 297,
     maxY: 210,
     velocity: 1500,
-    unit: 'millimeters',
     penUpCommand: 'M3 S30',
     penDownCommand: 'M3 S0',
-    decimals: 3,
+    decimals: 2,
 }
 ```

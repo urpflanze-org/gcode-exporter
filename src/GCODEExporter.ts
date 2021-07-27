@@ -209,7 +209,8 @@ class GCODEExporter {
 						GCODEExporter.bufferToPoints(
 							childBuffer.slice(childVertexIndex, childVertexIndex + currentIndexing.frameLength)
 						),
-						1 / 10 ** settings.decimals
+						1 / 10 ** settings.decimals,
+						true
 					)
 				)
 

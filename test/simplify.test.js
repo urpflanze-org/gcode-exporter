@@ -2,7 +2,7 @@ const tap = require('tap')
 
 const Urpflanze = require('@urpflanze/core')
 
-const GCODEExporter = require('../dist/index').GCODEExporter
+const GCODEExporter = require('../dist/cjs/index').GCODEExporter
 
 const scene = new Urpflanze.Scene()
 

@@ -1,6 +1,6 @@
 import type { Scene, ShapePrimitive } from '@urpflanze/core'
 import { clamp } from '@urpflanze/core/dist/cjs/Utilities'
-import simplify from 'simplify-js'
+import * as simplify from 'simplify-js'
 
 import type { IGCODEExporterSettings } from './types'
 import { round, concat } from './utilities'

@@ -1,5 +1,5 @@
 /*!
- * @license Urpflanze GCODE Exporter v"0.0.6"
+ * @license Urpflanze GCODE Exporter v"0.0.7"
  * urpflanze-gcode-exporter.js
  *
  * Github: https://github.com/urpflanze-org/gcode-exporter
@@ -176,7 +176,7 @@ class GCODEExporter {
                 const initialPointX = (0,_urpflanze_core_dist_cjs_Utilities__WEBPACK_IMPORTED_MODULE_0__.clamp)(settings.minX, settings.maxX, settings.minX + childBuffer[childVertexIndex] / scale + drawAreaSceneOffset[0]);
                 const initialPointY = (0,_urpflanze_core_dist_cjs_Utilities__WEBPACK_IMPORTED_MODULE_0__.clamp)(settings.minY, settings.maxY, settings.minY + childBuffer[childVertexIndex + 1] / scale + drawAreaSceneOffset[1]);
                 (0,_utilities__WEBPACK_IMPORTED_MODULE_2__.concat)(gcode, this.moveTo(settings.penUpCommand, settings.penDownCommand, initialPointX, initialPointY, settings.decimals));
-                const simplifiedBuffer = GCODEExporter.pointsToBuffer(simplify_js__WEBPACK_IMPORTED_MODULE_1___default()(GCODEExporter.bufferToPoints(childBuffer.slice(childVertexIndex, childVertexIndex + currentIndexing.frameLength)), 1 / 10 ** settings.decimals, true));
+                const simplifiedBuffer = GCODEExporter.pointsToBuffer(simplify_js__WEBPACK_IMPORTED_MODULE_1__(GCODEExporter.bufferToPoints(childBuffer.slice(childVertexIndex, childVertexIndex + currentIndexing.frameLength)), 1 / 10 ** settings.decimals, true));
                 for (let i = 0, len = simplifiedBuffer.length; i < len; i += 2) {
                     const currentX = (0,_urpflanze_core_dist_cjs_Utilities__WEBPACK_IMPORTED_MODULE_0__.clamp)(settings.minX, settings.maxX, settings.minX + simplifiedBuffer[i] / scale + drawAreaSceneOffset[0]);
                     const currentY = (0,_urpflanze_core_dist_cjs_Utilities__WEBPACK_IMPORTED_MODULE_0__.clamp)(settings.minY, settings.maxY, settings.minY + simplifiedBuffer[i + 1] / scale + drawAreaSceneOffset[1]);
@@ -230,11 +230,10 @@ GCODEExporter.defaults = {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.distributePointsInBuffer = exports.interpolate = exports.prepareBufferForInterpolation = exports.distanceFromRepetition = exports.angle2FromRepetition = exports.angleFromRepetition = exports.random = exports.noise = exports.relativeClamp = exports.clamp = exports.lerp = exports.toRadians = exports.toDegrees = exports.now = void 0;
+exports.interpolate = exports.prepareBufferForInterpolation = exports.distributePointsInBuffer = exports.distanceFromRepetition = exports.angle2FromRepetition = exports.angleFromRepetition = exports.random = exports.noise = exports.relativeClamp = exports.clamp = exports.lerp = exports.toRadians = exports.toDegrees = exports.now = void 0;
 const SimplexNoise = __webpack_require__(4);
 const repetitions_1 = __webpack_require__(5);
 const Vec2_1 = __webpack_require__(6);
-// isDef: (object: any): boolean => typeof object !== 'undefined' && object !== null,
 const measurement = typeof performance !== 'undefined' ? performance : Date;
 /**
  * Get current timestamp in milliseconds
@@ -281,13 +280,6 @@ function toRadians(degrees) {
     return (degrees * Math.PI) / 180;
 }
 exports.toRadians = toRadians;
-// perf: (name: string, callback: any, log: boolean = false): number => {
-// 	const t1 = now()
-// 	callback()
-// 	const t2 = now()
-// 	log && console.log('perf ' + name + ': ' + (t2 - t1))
-// 	return t2 - t1
-// }
 /**
  * Linear interpolation from `a` when `i` as 0 an `b` when `i' as 1
  *
@@ -358,23 +350,36 @@ const noises = {
  * @param {number} [x=0]
  * @param {number} [y=0]
  * @param {number} [z=0]
+ * @param {number} [min=-1]
+ * @param {number} [max=-1]
  * @returns {number} between -1 and 1
  */
-function noise(seed = 'random', x = 0, y = 0, z = 0) {
+function noise(seed = 'random', x = 0, y = 0, z = 0, min = -1, max = 1) {
     if (typeof noises[seed] === 'undefined') {
         noises[seed] = new SimplexNoise(seed);
     }
-    return noises[seed].noise3D(x, y, z);
+    const value = noises[seed].noise3D(x, y, z);
+    return min !== -1 || max !== 1 ? (0.5 + value * 0.5) * (max - min) + min : value;
 }
 exports.noise = noise;
 /**
- * Random number generator
+ * @internal
+ * @ignore
  */
 const randoms = {};
 /**
- * random number generator
- * @param seed
- * @returns
+ * Random number generator
+ * @example
+ * ```javascript
+ * 	Urpflanze.random('seed') // 0.9367527104914188
+ * ```
+ *
+ * @category Utilities
+ * @param {string} seed
+ * @param {number} min
+ * @param {number} max
+ * @param {number} decimals
+ * @returns {number}
  */
 function random(seed, min = 0, max = 1, decimals) {
     const key = seed + '';
@@ -495,64 +500,22 @@ function distanceFromRepetition(repetition, offsetFromCenter = [0, 0]) {
 exports.distanceFromRepetition = distanceFromRepetition;
 /// Interpolation
 /**
+ * Evenly distributes a number of points in a buffer
  *
- * @param from
- * @param to
- * @returns
+ * @category Utilities.Buffer interpolation
+ * @export
+ * @param {Float32Array} buffer current buffer
+ * @param {number} pointsToAdd points to add
+ * @return {*}  {Float32Array}
  */
-function prepareBufferForInterpolation(from, to) {
-    const fromBufferLength = from.length;
-    const toBufferLength = to.length;
-    if (fromBufferLength === toBufferLength) {
-        return [from, to];
-    }
-    const maxBufferLength = fromBufferLength > toBufferLength ? fromBufferLength : toBufferLength;
-    const difference = Math.abs(fromBufferLength - toBufferLength);
-    const minBufferLength = maxBufferLength - difference;
-    /////
-    const b = fromBufferLength < toBufferLength ? to : from;
-    const t = fromBufferLength < toBufferLength ? from : to;
-    const a = distributePointsInBuffer(t, Math.floor(difference / 2));
-    // a[maxBufferLength - 2] = t[minBufferLength - 2]
-    // a[maxBufferLength - 1] = t[minBufferLength - 1]
-    return fromBufferLength > toBufferLength ? [b, a] : [a, b];
-}
-exports.prepareBufferForInterpolation = prepareBufferForInterpolation;
-/**
- *
- * @param from
- * @param to
- * @param offset
- * @returns
- */
-function interpolate(from, to, initialOffset = 0.5) {
-    const [a, b] = prepareBufferForInterpolation(from, to);
-    const maxBufferLength = Math.max(a.length, b.length);
-    const offset = typeof initialOffset === 'number' ? [initialOffset] : initialOffset;
-    const maxPoints = maxBufferLength / 2;
-    if (offset.length !== maxPoints) {
-        const tl = offset.length;
-        for (let i = 0; i < maxPoints; i++) {
-            offset[i] = offset[i % tl];
-        }
-    }
-    ////
-    const result = new Float32Array(maxBufferLength);
-    for (let i = 0, off = 0; i < maxBufferLength; i += 2, off++) {
-        result[i] = (1 - offset[off]) * a[i] + offset[off] * b[i];
-        result[i + 1] = (1 - offset[off]) * a[i + 1] + offset[off] * b[i + 1];
-    }
-    return result;
-}
-exports.interpolate = interpolate;
-function distributePointsInBuffer(buffer, count) {
+function distributePointsInBuffer(buffer, pointsToAdd) {
     const bufferLen = buffer.length;
     const pointsLen = bufferLen / 2;
-    const finalBufferLength = (pointsLen + count) * 2;
+    const finalBufferLength = (pointsLen + pointsToAdd) * 2;
     const edges = pointsLen - 1;
     if (edges > 1) {
         const lastPoint = bufferLen - 2;
-        const newPointsOnEdge = Math.floor(count / edges);
+        const newPointsOnEdge = Math.floor(pointsToAdd / edges);
         const bufferWithPointsEveryEdge = bufferLen + newPointsOnEdge * lastPoint;
         let remainingPoints = (finalBufferLength - bufferWithPointsEveryEdge) / 2;
         const edgeRemainingIndex = Math.round(edges / remainingPoints);
@@ -588,6 +551,61 @@ function distributePointsInBuffer(buffer, count) {
     return result;
 }
 exports.distributePointsInBuffer = distributePointsInBuffer;
+/**
+ * Leads two buffers to have the same number of points
+ *
+ * @category Utilities.Buffer interpolation
+ * @param from
+ * @param to
+ * @returns
+ */
+function prepareBufferForInterpolation(from, to) {
+    const fromBufferLength = from.length;
+    const toBufferLength = to.length;
+    if (fromBufferLength === toBufferLength) {
+        return [from, to];
+    }
+    // const maxBufferLength = fromBufferLength > toBufferLength ? fromBufferLength : toBufferLength
+    const difference = Math.abs(fromBufferLength - toBufferLength);
+    // const minBufferLength = maxBufferLength - difference
+    /////
+    const b = fromBufferLength < toBufferLength ? to : from;
+    const t = fromBufferLength < toBufferLength ? from : to;
+    const a = distributePointsInBuffer(t, Math.floor(difference / 2));
+    // a[maxBufferLength - 2] = t[minBufferLength - 2]
+    // a[maxBufferLength - 1] = t[minBufferLength - 1]
+    return fromBufferLength > toBufferLength ? [b, a] : [a, b];
+}
+exports.prepareBufferForInterpolation = prepareBufferForInterpolation;
+/**
+ * Interpolate two buffer
+ *
+ * @category Utilities.Buffer interpolation
+ * @param from
+ * @param to
+ * @param offset
+ * @returns
+ */
+function interpolate(from, to, initialOffset = 0.5) {
+    const [a, b] = prepareBufferForInterpolation(from, to);
+    const maxBufferLength = Math.max(a.length, b.length);
+    const offset = typeof initialOffset === 'number' ? [initialOffset] : initialOffset;
+    const maxPoints = maxBufferLength / 2;
+    if (offset.length !== maxPoints) {
+        const tl = offset.length;
+        for (let i = 0; i < maxPoints; i++) {
+            offset[i] = offset[i % tl];
+        }
+    }
+    ////
+    const result = new Float32Array(maxBufferLength);
+    for (let i = 0, off = 0; i < maxBufferLength; i += 2, off++) {
+        result[i] = (1 - offset[off]) * a[i] + offset[off] * b[i];
+        result[i + 1] = (1 - offset[off]) * a[i + 1] + offset[off] * b[i + 1];
+    }
+    return result;
+}
+exports.interpolate = interpolate;
 //# sourceMappingURL=Utilities.js.map
 
 /***/ }),
@@ -1080,7 +1098,7 @@ exports.ERepetitionType = void 0;
 /**
  * Repetition type enumerator.
  *
- * @category Core.Repetition
+ * @category Types & Interfaces.Repetitions
  * @internal
  */
 var ERepetitionType;
@@ -1116,7 +1134,7 @@ const MATRIX = new Array(4);
 /**
  * Vec2 operation
  *
- * @category Core.Utilities
+ * @category Math
  */
 const Vec2 = {
     /**
@@ -1315,7 +1333,7 @@ const Vec2 = {
      */
     ONE: Array.from([1, 1]),
 };
-exports.default = Vec2;
+exports["default"] = Vec2;
 //# sourceMappingURL=Vec2.js.map
 
 /***/ }),

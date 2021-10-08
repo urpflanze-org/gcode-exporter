@@ -1,9 +1,9 @@
-import type { Scene, ShapePrimitive } from '@urpflanze/core'
-import { clamp } from '@urpflanze/core/dist/cjs/Utilities'
+import type { IPropArguments, Scene, ShapePrimitive } from '@urpflanze/core'
+import { IGCODEPropArguments } from 'index'
 import * as simplify from 'simplify-js'
 
-import type { IGCODEExporterSettings } from './types'
-import { round, concat } from './utilities'
+import type { IGCODEStreamProps, IGCODEExporterSettings } from './types'
+import { clamp, round, concat, toNumber } from './utilities'
 
 class GCODEExporter {
 	static defaults: Required<IGCODEExporterSettings> = {
@@ -16,6 +16,7 @@ class GCODEExporter {
 		penUpCommand: 'M3 S30',
 		penDownCommand: 'M3 S0',
 		decimals: 2,
+		comments: true,
 	}
 
 	static parse(scene: Scene, settings: IGCODEExporterSettings): string {
@@ -88,6 +89,13 @@ class GCODEExporter {
 	 */
 	static setCurrentWorkspacePosition(x: number, y: number, decimals: number) {
 		return `G92 X${round(x, decimals)} Y${round(y, decimals)}`
+	}
+
+	/**
+	 * Create comment.
+	 */
+	static comment(comment: string): string {
+		return `( ${comment} )`
 	}
 
 	/**
@@ -187,6 +195,23 @@ class GCODEExporter {
 				currentBufferIndex++
 			) {
 				const currentIndexing = childIndexedBuffer[currentBufferIndex]
+				const propArguments: IGCODEPropArguments = {
+					...currentIndexing,
+				}
+
+				const currentShape = currentIndexing.shape as ShapePrimitive<IPropArguments, IGCODEStreamProps>
+				const name = (currentShape.data?.name || `SceneChild-${i + 1}`) + `_rep-${currentIndexing.repetition.index}`
+
+				const velocity =
+					typeof currentShape.drawer !== 'undefined' && typeof currentShape.drawer.velocity !== 'undefined'
+						? toNumber(
+								typeof currentShape.drawer.velocity === 'function'
+									? currentShape.drawer.velocity(propArguments)
+									: currentShape.drawer.velocity,
+								settings.velocity
+						  )
+						: settings.velocity
+
 				const initialPointX = clamp(
 					settings.minX,
 					settings.maxX,
@@ -198,6 +223,8 @@ class GCODEExporter {
 					settings.maxY,
 					settings.minY + childBuffer[childVertexIndex + 1] / scale + drawAreaSceneOffset[1]
 				)
+
+				settings.comments && concat(gcode, this.comment(name))
 
 				concat(
 					gcode,
@@ -214,6 +241,7 @@ class GCODEExporter {
 					)
 				)
 
+				// in this case I repeat the first point, even if in the move I lower the pen
 				for (let i = 0, len = simplifiedBuffer.length; i < len; i += 2) {
 					const currentX = clamp(
 						settings.minX,
@@ -225,11 +253,11 @@ class GCODEExporter {
 						settings.maxY,
 						settings.minY + simplifiedBuffer[i + 1] / scale + drawAreaSceneOffset[1]
 					)
-					concat(gcode, this.lineTo(currentX, currentY, settings.velocity, settings.decimals))
+					concat(gcode, this.lineTo(currentX, currentY, velocity, settings.decimals))
 				}
 
 				if ((currentIndexing.shape as ShapePrimitive).isClosed())
-					concat(gcode, this.lineTo(initialPointX, initialPointY, settings.velocity, settings.decimals))
+					concat(gcode, this.lineTo(initialPointX, initialPointY, velocity, settings.decimals))
 
 				childVertexIndex += currentIndexing.frameLength
 			}
